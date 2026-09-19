@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}公开竞赛 &amp; 悬赏平台{% endblock %}
+{% block content %}
+<div id="vue-app"></div>
+<script>
+  window.__PAGE_DATA__ = {
+    hotComps: {{ hot_comps | tojson }},
+    hotBounties: {{ hot_bounties | tojson }},
+    stats: {{ stats | tojson }},
+    now: {{ now | tojson }}
+  };
+</script>
+{% endblock %}
+{% block vue_script %}
+<script src="{{ url_for('static', filename='views/index.js') }}"></script>
+{% endblock %}

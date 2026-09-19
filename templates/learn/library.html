@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}📚 个人资料库{% endblock %}
+{% block content %}
+<div id="vue-app"></div>
+<script>
+  window.__PAGE_DATA__ = {
+    items: {{ items | tojson }},
+    folders: {{ folders | tojson }},
+    favs: {{ favs | tojson }},
+    folderId: {{ folder_id | tojson }},
+    kind: {{ kind | tojson }},
+    keyword: {{ keyword | tojson }},
+    kindLabels: {{ KIND_LABELS | tojson }},
+    difficultyLabels: {{ DIFFICULTY_LABELS | tojson }},
+    quota: {{ quota | tojson }}
+  };
+</script>
+{% endblock %}
+{% block vue_script %}
+<script src="{{ url_for('static', filename='views/learn_library.js') }}"></script>
+{% endblock %}

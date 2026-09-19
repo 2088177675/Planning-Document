@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}发布悬赏 - 竞赛悬赏平台{% endblock %}
+{% block content %}
+<h1 class="page-title">发布悬赏任务</h1>
+<p class="page-sub">针对单个具体问题发布赏金求助，发布前预缴全额赏金由系统托管；
+  解答被采纳后赏金自动发放给解答者，到期无满意解答则原路退回。平台零分成。</p>
+
+<form method="post" enctype="multipart/form-data" class="card">
+  <div class="form-grid">
+    <div class="form-row full">
+      <label>悬赏标题 *</label>
+      <input type="text" name="title" required placeholder="一句话概括问题，如：Python 数据透视表报错求解决">
+    </div>
+    <div class="form-row full">
+      <label>问题详情 * <span class="hint">详细描述求助问题、需求、解题要求、作答标准</span></label>
+      <textarea name="content" rows="6" required placeholder="请尽量详细描述问题背景、报错信息、期望结果、作答标准…"></textarea>
+    </div>
+    <div class="form-row">
+      <label>学科标签</label>
+      <input type="text" name="subject" placeholder="如：高等数学 / Python / 英语">
+    </div>
+    <div class="form-row">
+      <label>问题类型标签 <span class="hint">多个标签用英文逗号分隔</span></label>
+      <input type="text" name="tags" placeholder="如：错题讲解,代码调试">
+    </div>
+    <div class="form-row">
+      <label>赏金金额（元）* <span class="hint">发布即全额托管</span></label>
+      <input type="number" name="bounty_amount" step="0.01" min="0.01" required placeholder="如：50">
+    </div>
+    <div class="form-row">
+      <label>悬赏有效期（截止时间）*</label>
+      <input type="datetime-local" name="expire_at" required>
+    </div>
+  </div>
+
+  <h3 style="margin-top:18px">附件上传 <span class="hint" style="font-weight:400">题目图片、文档、素材、参考文件（选传，最多 3 个）</span></h3>
+  <div class="form-grid">
+    {% for i in range(3) %}
+    <div class="form-row">
+      <label>附件 {{ i+1 }}</label>
+      <input type="file" name="att_file_{{ i }}">
+    </div>
+    {% endfor %}
+  </div>
+
+  <div style="margin-top:24px;text-align:center">
+    <button type="submit" class="btn btn-success" style="padding:12px 40px;font-size:16px">
+      确认信息并托管赏金、提交发布
+    </button>
+    <p class="muted" style="margin-top:10px">提交后赏金冻结托管，不可私自撤回、不可篡改金额；您不能解答自己发布的悬赏</p>
+  </div>
+</form>
+{% endblock %}

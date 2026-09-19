@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}{{ u.real_name or u.username }} 的主页{% endblock %}
+{% block content %}
+<div id="vue-app"></div>
+<script>
+  window.__PAGE_DATA__ = {
+    u: {{ u | tojson }},
+    publicMats: {{ public_mats | tojson }},
+    followerCount: {{ follower_count | tojson }},
+    followingCount: {{ following_count | tojson }},
+    isFollowing: {% if is_following %}true{% else %}false{% endif %},
+    isSelf: {% if is_self %}true{% else %}false{% endif %},
+    kindLabels: {{ KIND_LABELS | tojson }},
+    isLoggedIn: {% if current_user %}true{% else %}false{% endif %}
+  };
+</script>
+{% endblock %}
+{% block vue_script %}
+<script src="{{ url_for('static', filename='views/learn_user.js') }}"></script>
+{% endblock %}

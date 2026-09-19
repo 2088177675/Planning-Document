@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}AI 调用日志{% endblock %}
+{% block content %}
+<div id="vue-app"></div>
+<script>
+  window.__PAGE_DATA__ = {
+    items: {{ items | tojson }},
+    summary: {{ summary | tojson }},
+    status: {{ status | tojson }}
+  };
+</script>
+{% endblock %}
+{% block vue_script %}
+<script src="{{ url_for('static', filename='views/admin_learn_logs.js') }}"></script>
+{% endblock %}

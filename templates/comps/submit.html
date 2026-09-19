@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}提交作品 - {{ c.title }}{% endblock %}
+{% block content %}
+<h1 class="page-title">提交作品：{{ c.title }}</h1>
+<p class="page-sub">支持多次提交、版本覆盖，系统记录每次提交时间；
+  {% if c.eval_mode == 'auto' %}自动评测以最新版本答案判分，同分取最早提交者。
+  {% else %}人工评测以最新版本作品为准。{% endif %}
+  提交截止：<b style="color:#dc2626">{{ c.submit_deadline }}</b></p>
+
+<form method="post" enctype="multipart/form-data" class="card">
+  {% if c.eval_mode == 'auto' and questions %}
+  <h3>客观题作答</h3>
+  {% for q in questions %}
+  <div class="form-row">
+    <label>第 {{ q.qno }} 题（{{ q.score }} 分）：{{ q.content }}</label>
+    <input type="text" name="ans_{{ q.id }}" placeholder="请输入答案" style="max-width:420px">
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <h3 style="margin-top:18px">作品说明 / 作答内容</h3>
+  <div class="form-row">
+    <textarea name="content" placeholder="可填写解题思路、作品说明、结论等"></textarea>
+  </div>
+  <div class="form-row">
+    <label>上传作品文件 <span class="hint">代码包、论文、表格等（选传）</span></label>
+    <input type="file" name="work_file">
+  </div>
+  <button class="btn btn-primary" style="padding:10px 32px">提交作品</button>
+</form>
+
+<div class="card">
+  <h3>我的历史提交（{{ my_subs|length }} 次）</h3>
+  {% if my_subs %}
+  <table class="data">
+    <tr><th>版本</th><th>提交时间</th><th>得分</th><th>文件</th></tr>
+    {% for s in my_subs %}
+    <tr>
+      <td>v{{ s.version }}</td>
+      <td>{{ s.submitted_at }}</td>
+      <td>{% if s.score is not none %}<b>{{ s.score }} 分</b>{% else %}<span class="muted">待评</span>{% endif %}</td>
+      <td>{% if s.stored_name %}
+        <a href="{{ url_for('comp.download_submission', cid=c.id, sid=s.id) }}">{{ s.filename }}</a>
+      {% else %}—{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="empty">尚未提交，提交后可多次更新版本</p>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% block title %}发布竞赛 - 竞赛悬赏平台{% endblock %}
+{% block content %}
+<h1 class="page-title">发布公开竞赛</h1>
+<p class="page-sub">填写完整赛事配置并预缴冠军奖金（系统托管）后提交审核；审核驳回或赛事流标，奖金原路退回。平台不抽成。</p>
+
+<form method="post" enctype="multipart/form-data" class="card">
+  <h3>① 基础信息</h3>
+  <div class="form-grid">
+    <div class="form-row full">
+      <label>竞赛标题 <span class="hint">*</span></label>
+      <input type="text" name="title" required placeholder="如：第十届校园数据分析大赛">
+    </div>
+    <div class="form-row full">
+      <label>竞赛简介</label>
+      <textarea name="intro" placeholder="一句话介绍竞赛目标与奖励"></textarea>
+    </div>
+    <div class="form-row full">
+      <label>赛事背景</label>
+      <textarea name="background" placeholder="赛事背景、主办方说明等"></textarea>
+    </div>
+    <div class="form-row">
+      <label>适用学科</label>
+      <input type="text" name="subject" placeholder="如：数学 / 计算机 / 英语">
+    </div>
+    <div class="form-row">
+      <label>难度标签</label>
+      <select name="difficulty">
+        {% for d in difficulties %}<option>{{ d }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="form-row full">
+      <label>面向人群</label>
+      <input type="text" name="audience" placeholder="如：全校本科生 / 跨校研究生">
+    </div>
+  </div>
+
+  <h3 style="margin-top:22px">② 赛事模式与规模</h3>
+  <div class="form-grid">
+    <div class="form-row">
+      <label>赛事模式</label>
+      <select name="mode" id="modeSel">
+        <option value="individual">个人赛</option>
+        <option value="team">团队赛</option>
+      </select>
+    </div>
+    <div class="form-row" id="teamSizeRow" style="display:none">
+      <label>单队人数上限</label>
+      <input type="number" name="team_size_max" value="3" min="2">
+    </div>
+    <div class="form-row" id="teamCountRow" style="display:none">
+      <label>队伍数量上限 <span class="hint">留空不限</span></label>
+      <input type="number" name="team_count_max" min="1" placeholder="如：20">
+    </div>
+    <div class="form-row">
+      <label>参赛总人数上限 <span class="hint">留空不限，达上限自动关闭报名</span></label>
+      <input type="number" name="participant_limit" min="1" placeholder="如：100">
+    </div>
+  </div>
+
+  <h3 style="margin-top:22px">③ 时间体系</h3>
+  <div class="form-grid">
+    <div class="form-row"><label>报名开始时间</label><input type="datetime-local" name="signup_start"></div>
+    <div class="form-row"><label>报名结束时间</label><input type="datetime-local" name="signup_end"></div>
+    <div class="form-row"><label>竞赛作答开始时间</label><input type="datetime-local" name="contest_start"></div>
+    <div class="form-row"><label>作品提交截止时间 *</label><input type="datetime-local" name="submit_deadline" required></div>
+    <div class="form-row"><label>评分公示时间</label><input type="datetime-local" name="result_time"></div>
+  </div>
+
+  <h3 style="margin-top:22px">④ 赛事材料上传 <span class="hint" style="font-weight:400">试题文档、数据集、参考资料、样例模板等（选传，最多 3 个）</span></h3>
+  <div class="form-grid">
+    {% for i in range(3) %}
+    <div class="form-row">
+      <label>材料 {{ i+1 }} 类型</label>
+      <select name="mat_kind_{{ i }}">
+        <option value="试题文档">试题文档</option>
+        <option value="数据集">数据集</option>
+        <option value="参考资料">参考资料</option>
+        <option value="样例模板">样例模板</option>
+        <option value="作答要求">作答要求</option>
+      </select>
+      <input type="file" name="mat_file_{{ i }}" style="margin-top:6px">
+    </div>
+    {% endfor %}
+  </div>
+
+  <h3 style="margin-top:22px">⑤ 奖金与评测规则</h3>
+  <div class="form-grid">
+    <div class="form-row">
+      <label>冠军奖金（元）* <span class="hint">发布前全额托管，平台零分成</span></label>
+      <input type="number" name="prize_amount" step="0.01" min="0.01" required placeholder="如：500">
+    </div>
+    <div class="form-row">
+      <label>评测方式</label>
+      <select name="eval_mode" id="evalSel">
+        <option value="manual">人工评测（发布者打分评比）</option>
+        <option value="auto">系统自动评测（客观题自动判分）</option>
+      </select>
+    </div>
+    <div class="form-row full">
+      <label>同分排名规则</label>
+      <select name="tie_breaker">
+        <option value="earliest">最早提交优先</option>
+        <option value="accuracy">正确率优先（自动评测）</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="questionsBox" style="display:none">
+    <h3 style="margin-top:22px">⑥ 客观题与标准答案 <span class="hint" style="font-weight:400">自动评测模式下，系统按答案自动判分</span></h3>
+    <table class="data" id="qTable">
+      <tr><th style="width:50px">题号</th><th>题目内容</th><th style="width:180px">标准答案</th><th style="width:110px">分值</th><th style="width:70px">操作</th></tr>
+    </table>
+    <button type="button" class="btn btn-light btn-sm" style="margin-top:10px" onclick="addQuestion()">＋ 添加题目</button>
+  </div>
+
+  <div style="margin-top:26px;text-align:center">
+    <button type="submit" class="btn btn-primary" style="padding:12px 40px;font-size:16px">
+      确认配置并托管奖金、提交发布
+    </button>
+    <p class="muted" style="margin-top:10px">提交即表示同意奖金由系统冻结托管，竞赛期间不可撤回、不可篡改</p>
+  </div>
+</form>
+
+<script>
+const modeSel = document.getElementById('modeSel');
+function toggleMode(){
+  const team = modeSel.value === 'team';
+  document.getElementById('teamSizeRow').style.display = team ? '' : 'none';
+  document.getElementById('teamCountRow').style.display = team ? '' : 'none';
+}
+modeSel.addEventListener('change', toggleMode);
+
+const evalSel = document.getElementById('evalSel');
+function toggleEval(){
+  document.getElementById('questionsBox').style.display = evalSel.value === 'auto' ? '' : 'none';
+}
+evalSel.addEventListener('change', toggleEval);
+
+let qno = 0;
+function addQuestion(){
+  qno++;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>Q${qno}</td>
+    <td><input type="text" name="q_content" placeholder="题目内容"></td>
+    <td><input type="text" name="q_answer" placeholder="标准答案"></td>
+    <td><input type="number" name="q_score" value="10" min="0" step="0.5"></td>
+    <td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">删除</button></td>`;
+  document.getElementById('qTable').appendChild(tr);
+}
+addQuestion();
+</script>
+{% endblock %}

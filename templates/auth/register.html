@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}注册 · 公开竞赛 & 悬赏平台{% endblock %}
+{% block content %}
+<div id="vue-app"></div>
+{% endblock %}
+{% block vue_script %}
+<script src="{{ url_for('static', filename='views/register.js') }}"></script>
+{% endblock %}

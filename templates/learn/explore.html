@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}🌐 公开学习资料广场{% endblock %}
+{% block content %}
+<div id="vue-app"></div>
+<script>
+  window.__PAGE_DATA__ = {
+    items: {{ items | tojson }},
+    keyword: {{ keyword | tojson }},
+    kind: {{ kind | tojson }},
+    kindLabels: {{ KIND_LABELS | tojson }}
+  };
+</script>
+{% endblock %}
+{% block vue_script %}
+<script src="{{ url_for('static', filename='views/learn_explore.js') }}"></script>
+{% endblock %}

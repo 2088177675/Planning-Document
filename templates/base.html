@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}公开竞赛 &amp; 悬赏平台{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2/dist/index.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    /* Element Plus 主题与原 style.css 融合 */
+    .el-button--primary { background-color: #2563eb !important; border-color: #2563eb !important; }
+    .el-button--primary:hover { background-color: #1d4ed8 !important; border-color: #1d4ed8 !important; }
+    .el-button--success { background-color: #16a34a !important; border-color: #16a34a !important; }
+    .el-button--danger { background-color: #dc2626 !important; border-color: #dc2626 !important; }
+    .el-button--warning { background-color: #f59e0b !important; border-color: #f59e0b !important; }
+    .el-card { border-radius: 12px !important; }
+    .el-tag--primary { background-color: #dbeafe !important; color: #1d4ed8 !important; border-color: #dbeafe !important; }
+    .el-tag--success { background-color: #dcfce7 !important; color: #15803d !important; border-color: #dcfce7 !important; }
+    .el-tag--warning { background-color: #ffedd5 !important; color: #c2410c !important; border-color: #ffedd5 !important; }
+    .el-tag--danger { background-color: #fee2e2 !important; color: #b91c1c !important; border-color: #fee2e2 !important; }
+    .el-tag--info { background-color: #e5e7eb !important; color: #374151 !important; border-color: #e5e7eb !important; }
+    .page-vue { padding: 4px 0; }
+    .vue-empty { text-align: center; color: #94a3b8; padding: 40px 0; font-size: 14px; }
+    .vue-prize { font-size: 20px; font-weight: 800; color: #dc2626; }
+    .vue-card-title { font-size: 17px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+    .vue-card-title a { color: #1e293b; }
+    .vue-card-title a:hover { color: #2563eb; }
+    .vue-meta { font-size: 13px; color: #64748b; display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <div class="container nav">
+    <a class="logo" href="{{ url_for('main.index') }}">🏆 竞赛悬赏平台</a>
+    <nav class="nav-links">
+      <a href="{{ url_for('main.index') }}">首页</a>
+      <a href="{{ url_for('learn.index') }}" class="nav-learn">📚 自学习平台</a>
+      <a href="{{ url_for('comp.list_view') }}">竞赛广场</a>
+      <a href="{{ url_for('bounty.list_view') }}">悬赏广场</a>
+      <a href="{{ url_for('admin.archive') }}">归档中心</a>
+      <a href="{{ url_for('admin.bank') }}">公共题库</a>
+      {% if current_user and current_user.role == 'admin' %}
+      <a href="{{ url_for('admin.dashboard') }}" class="nav-admin">管理后台</a>
+      {% endif %}
+    </nav>
+    <div class="nav-user">
+      {% if current_user %}
+        {% if current_user.is_member or current_user.role == 'admin' %}
+          <span class="badge badge-gold">VIP 会员</span>
+        {% else %}
+          <span class="badge badge-gray">普通用户</span>
+        {% endif %}
+        <span class="balance">💰 ¥{{ '%.2f'|format(current_user.balance) }}</span>
+        <a href="{{ url_for('main.profile') }}" class="username">
+          {{ current_user.real_name or current_user.username }}
+          <small>({{ ROLE_NAMES[current_user.role] }})</small>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">退出</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm">登录</a>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">注册</a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<main class="container content">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashes">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="container">
+    公开竞赛 &amp; 悬赏平台 · 奖金/赏金全额托管、平台零分成 · 仅用于教学演示（Vue 3 + Element Plus）
+  </div>
+</footer>
+
+<!-- Vue 3 + Element Plus UMD 全局脚本 -->
+<script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/element-plus@2/dist/index.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  // 全局注入当前用户与常用 URL，供所有 Vue 应用使用
+  window.__USER__ = {% if current_user %}{
+    id: {{ current_user.id }},
+    username: {{ current_user.username | tojson }},
+    real_name: {{ current_user.real_name | tojson }},
+    role: {{ current_user.role | tojson }},
+    is_member: {{ current_user.is_member | tojson }},
+    balance: {{ current_user.balance | tojson }}
+  }{% else %}null{% endif %};
+  window.__URLS__ = {
+    index: {{ url_for('main.index') | tojson }},
+    login: {{ url_for('auth.login') | tojson }},
+    register: {{ url_for('auth.register') | tojson }},
+    logout: {{ url_for('auth.logout') | tojson }},
+    profile: {{ url_for('main.profile') | tojson }},
+    recharge: {{ url_for('main.recharge') | tojson }},
+    compList: {{ url_for('comp.list_view') | tojson }},
+    compPublish: {{ url_for('comp.publish') | tojson }},
+    bountyList: {{ url_for('bounty.list_view') | tojson }},
+    bountyPublish: {{ url_for('bounty.publish') | tojson }},
+    learnIndex: {{ url_for('learn.index') | tojson }},
+    learnLibrary: {{ url_for('learn.library') | tojson }},
+    learnExplore: {{ url_for('learn.explore') | tojson }},
+    learnFriends: {{ url_for('learn.friends') | tojson }},
+    learnUsersSearch: {{ url_for('learn.users_search') | tojson }},
+    learnAiGenerate: {{ url_for('learn.ai_generate') | tojson }},
+    learnMaterialSave: {{ url_for('learn.material_save') | tojson }},
+    learnFolderCreate: {{ url_for('learn.folder_create') | tojson }},
+    adminLearnLogs: {{ url_for('admin.learn_logs') | tojson }},
+    adminLearnReports: {{ url_for('admin.learn_reports') | tojson }},
+    adminLearnQuota: {{ url_for('admin.learn_quota') | tojson }},
+    archive: {{ url_for('admin.archive') | tojson }},
+    bank: {{ url_for('admin.bank') | tojson }},
+    adminDashboard: {{ url_for('admin.dashboard') | tojson }},
+    adminMembers: {{ url_for('admin.members') | tojson }},
+    adminFunds: {{ url_for('admin.funds') | tojson }},
+    adminComps: {{ url_for('admin.competitions') | tojson }},
+    adminBounties: {{ url_for('admin.bounties') | tojson }},
+    memberApply: {{ url_for('auth.member_apply') | tojson }}
+  };
+  // 竞赛/悬赏详情按 id 拼路径
+  window.__URLS__.compDetail = function (id) { return '/competitions/' + id; };
+  window.__URLS__.compManage = function (id) { return '/competitions/' + id + '/manage'; };
+  window.__URLS__.compSubmit = function (id) { return '/competitions/' + id + '/submit'; };
+  window.__URLS__.bountyDetail = function (id) { return '/bounties/' + id; };
+  // 自学习平台按 id 拼路径
+  window.__URLS__.learnMaterial = function (id) { return '/learn/material/' + id; };
+  window.__URLS__.learnMaterialUpdate = function (id) { return '/learn/material/' + id + '/update'; };
+  window.__URLS__.learnMaterialDelete = function (id) { return '/learn/material/' + id + '/delete'; };
+  window.__URLS__.learnMaterialTogglePublic = function (id) { return '/learn/material/' + id + '/toggle_public'; };
+  window.__URLS__.learnMaterialFavorite = function (id) { return '/learn/material/' + id + '/favorite'; };
+  window.__URLS__.learnMaterialAssist = function (id) { return '/learn/material/' + id + '/assist'; };
+  window.__URLS__.learnMaterialConversations = function (id) { return '/learn/material/' + id + '/conversations'; };
+  window.__URLS__.learnMaterialReport = function (id) { return '/learn/material/' + id + '/report'; };
+  window.__URLS__.learnFolderUpdate = function (id) { return '/learn/folders/' + id; };
+  window.__URLS__.learnFolderDelete = function (id) { return '/learn/folders/' + id + '/delete'; };
+  window.__URLS__.learnUser = function (id) { return '/learn/user/' + id; };
+  window.__URLS__.learnFollow = function (id) { return '/learn/follow/' + id; };
+</script>
+<script src="{{ url_for('static', filename='vue-boot.js') }}"></script>
+{% block vue_script %}{% endblock %}
+</body>
+</html>

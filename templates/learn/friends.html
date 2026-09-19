@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}👥 我的好友{% endblock %}
+{% block content %}
+<div id="vue-app"></div>
+<script>
+  window.__PAGE_DATA__ = {
+    following: {{ following | tojson }},
+    followers: {{ followers | tojson }},
+    friends: {{ friends | tojson }}
+  };
+</script>
+{% endblock %}
+{% block vue_script %}
+<script src="{{ url_for('static', filename='views/learn_friends.js') }}"></script>
+{% endblock %}

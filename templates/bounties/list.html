@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}悬赏广场 · 公开竞赛 & 悬赏平台{% endblock %}
+{% block content %}
+<div id="vue-app"></div>
+<script>
+  window.__PAGE_DATA__ = {
+    items: {{ items | tojson }},
+    status: {{ status | tojson }},
+    subject: {{ subject | tojson }},
+    sort: {{ sort | tojson }},
+    subjects: {{ subjects | tojson }},
+    now: {{ now | tojson }}
+  };
+</script>
+{% endblock %}
+{% block vue_script %}
+<script src="{{ url_for('static', filename='views/bounty_list.js') }}"></script>
+{% endblock %}

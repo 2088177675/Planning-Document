@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}个人中心 · {{ u.real_name or u.username }}{% endblock %}
+{% block content %}
+<div id="vue-app"></div>
+<script>
+  window.__PAGE_DATA__ = {
+    u: {{ u | tojson }},
+    myComps: {{ my_comps | tojson }},
+    myBounties: {{ my_bounties | tojson }},
+    mySignups: {{ my_signups | tojson }},
+    myAnswers: {{ my_answers | tojson }},
+    myPending: {{ my_pending | tojson }},
+    txs: {{ txs | tojson }}
+  };
+</script>
+{% endblock %}
+{% block vue_script %}
+<script src="{{ url_for('static', filename='views/profile.js') }}"></script>
+{% endblock %}

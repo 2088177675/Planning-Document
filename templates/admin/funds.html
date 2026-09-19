@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}资金监管 · 管理后台{% endblock %}
+{% block content %}
+<div id="vue-app"></div>
+<script>
+  window.__PAGE_DATA__ = {
+    txs: {{ txs | tojson }},
+    summary: {{ summary | tojson }}
+  };
+</script>
+{% endblock %}
+{% block vue_script %}
+<script src="{{ url_for('static', filename='views/admin_funds.js') }}"></script>
+{% endblock %}

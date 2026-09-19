@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}{{ c.title }} · 竞赛详情{% endblock %}
+{% block content %}
+<div id="vue-app"></div>
+<script>
+  window.__PAGE_DATA__ = {
+    c: {{ c | tojson }},
+    materials: {{ materials | tojson }},
+    announcements: {{ announcements | tojson }},
+    questions: {{ questions | tojson }},
+    teams: {{ teams | tojson }},
+    signupCount: {{ signup_count | tojson }},
+    mine: {{ mine | tojson }},
+    myTeam: {{ my_team | tojson }},
+    board: {{ board | tojson }},
+    champion: {{ champion | tojson }},
+    championTeam: {{ champion_team | tojson }},
+    canSignup: {{ can_signup | tojson }},
+    phase: {{ phase | tojson }},
+    now: {{ now | tojson }}
+  };
+</script>
+{% endblock %}
+{% block vue_script %}
+<script src="{{ url_for('static', filename='views/comp_detail.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block title %}赛事后台 - {{ c.title }}{% endblock %}
+{% block content %}
+<h1 class="page-title">赛事后台：{{ c.title }}</h1>
+<p class="page-sub">
+  当前状态：<span class="badge badge-blue">{{ phase }}</span> ·
+  奖金 ¥{{ '%.2f'|format(c.prize_amount) }} 已由系统冻结托管，竞赛期间不可撤回、不可篡改
+</p>
+
+<div class="grid grid-4">
+  <div class="card" style="text-align:center"><div style="font-size:26px;font-weight:800;color:#2563eb">{{ signups|length }}</div><div class="muted">报名人数</div></div>
+  <div class="card" style="text-align:center"><div style="font-size:26px;font-weight:800;color:#7c3aed">{{ teams|length }}</div><div class="muted">参赛队伍</div></div>
+  <div class="card" style="text-align:center"><div style="font-size:26px;font-weight:800;color:#16a34a">{{ submissions|length }}</div><div class="muted">提交记录</div></div>
+  <div class="card" style="text-align:center"><div style="font-size:22px;font-weight:800;color:#dc2626">¥{{ '%.2f'|format(c.prize_amount) }}</div><div class="muted">托管奖金</div></div>
+</div>
+
+<div class="card">
+  <h3>赛事运维</h3>
+  <div class="grid grid-2">
+    <form method="post" action="{{ url_for('comp.announce', cid=c.id) }}">
+      <div class="form-row">
+        <label>发布赛事公告 / 答疑澄清</label>
+        <textarea name="content" placeholder="公告内容、补充说明、答疑澄清…" required></textarea>
+      </div>
+      <button class="btn btn-light btn-sm">发布公告</button>
+    </form>
+    <form method="post" action="{{ url_for('comp.extend', cid=c.id) }}">
+      <label>延长赛事时间（仅未截止项可延长）</label>
+      <div class="form-row" style="margin-top:8px">
+        <label class="hint">新报名截止时间（当前：{{ c.signup_end }}）</label>
+        <input type="datetime-local" name="signup_end">
+      </div>
+      <div class="form-row">
+        <label class="hint">新作品提交截止时间（当前：{{ c.submit_deadline }}）</label>
+        <input type="datetime-local" name="submit_deadline">
+      </div>
+      <button class="btn btn-warn btn-sm">延长时间</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <h3>结果确认与奖金结算</h3>
+  {% if c.status == 'pending' %}
+    <p class="muted">竞赛待管理员审核，审核通过后自动上线。</p>
+  {% elif c.status in ('open',) %}
+    <p class="muted">提交截止（{{ c.submit_deadline }}）后可在此确认结果。
+      {% if c.eval_mode == 'auto' %}系统将按最高分自动排名，同分取最早提交者为冠军。
+      {% else %}请在下方为参赛作品打分，系统取最高分作品为冠军。{% endif %}</p>
+  {% elif c.status == 'ended' %}
+    <div class="pill-actions">
+      {% if c.eval_mode == 'auto' %}
+      <form method="post" action="{{ url_for('comp.settle', cid=c.id) }}" class="inline-form"
+            onsubmit="return confirm('确认自动评定冠军并发放奖金？')">
+        <button class="btn btn-success">确认排名 · 自动结算奖金给冠军</button>
+      </form>
+      {% else %}
+      <form method="post" action="{{ url_for('comp.settle', cid=c.id) }}" class="inline-form"
+            onsubmit="return confirm('确认最高分作品为冠军并发放奖金？')">
+        <button class="btn btn-success">确认冠军 · 发放奖金</button>
+      </form>
+      {% endif %}
+      <form method="post" action="{{ url_for('comp.fail', cid=c.id) }}" class="inline-form"
+            onsubmit="return confirm('确认无任何有效作品、判定流标？奖金将原路退回您的账户。')">
+        <button class="btn btn-danger">无有效作品 · 判定流标退款</button>
+      </form>
+    </div>
+    <p class="muted" style="margin-top:8px">结算后奖金全额发放至冠军账户（平台零分成）；流标则托管奖金原路退回。</p>
+  {% elif c.status == 'settled' %}
+    <p class="flash flash-ok">赛事已结算，奖金 ¥{{ '%.2f'|format(c.prize_amount) }} 已全额发放至冠军账户。</p>
+  {% elif c.status == 'failed' %}
+    <p class="flash flash-warn">赛事已流标，托管奖金已原路退回。</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3>选手提交记录与评分（{{ submissions|length }}）</h3>
+  {% if submissions %}
+  <form method="post" action="{{ url_for('comp.score', cid=c.id) }}">
+    <table class="data">
+      <tr><th>选手</th>{% if c.mode=='team' %}<th>队伍</th>{% endif %}<th>版本</th><th>提交时间</th>
+        <th>作品说明</th><th>文件</th><th style="width:120px">{% if c.eval_mode=='manual' %}打分{% else %}系统得分{% endif %}</th>
+        {% if c.eval_mode=='manual' %}<th style="width:160px">评语</th>{% endif %}</tr>
+      {% for s in submissions %}
+      <tr>
+        <td>{{ s.real_name or s.username }}</td>
+        {% if c.mode=='team' %}<td>{{ s.team_name or '—' }}</td>{% endif %}
+        <td>v{{ s.version }}</td>
+        <td>{{ s.submitted_at }}</td>
+        <td style="max-width:220px">{{ s.content or '—' }}</td>
+        <td>{% if s.stored_name %}<a href="{{ url_for('comp.download_submission', cid=c.id, sid=s.id) }}">📎 {{ s.filename }}</a>{% else %}—{% endif %}</td>
+        <td>
+          {% if c.eval_mode == 'manual' %}
+            <input type="number" step="0.5" name="score_{{ s.id }}" value="{{ s.score if s.score is not none else '' }}" placeholder="分数">
+          {% else %}
+            {{ s.score if s.score is not none else '待结算判分' }}
+          {% endif %}
+        </td>
+        {% if c.eval_mode == 'manual' %}
+        <td><input type="text" name="note_{{ s.id }}" value="{{ s.review_note or '' }}" placeholder="评语（选填）"></td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </table>
+    {% if c.eval_mode == 'manual' and c.status in ('open','ended') %}
+    <button class="btn btn-primary btn-sm" style="margin-top:12px">保存评分</button>
+    {% endif %}
+  </form>
+  {% else %}<p class="empty">暂无选手提交作品</p>{% endif %}
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h3>报名名单（{{ signups|length }}）</h3>
+    <table class="data">
+      <tr><th>用户</th><th>身份</th>{% if c.mode=='team' %}<th>队伍</th>{% endif %}<th>报名时间</th></tr>
+      {% for s in signups %}
+      <tr><td>{{ s.real_name or s.username }}</td><td class="muted">{{ s.username }}</td>
+        {% if c.mode=='team' %}<td>{{ s.team_name or '—' }}</td>{% endif %}
+        <td>{{ s.created_at[5:16] }}</td></tr>
+      {% else %}<tr><td colspan="4" class="empty">暂无报名</td></tr>{% endfor %}
+    </table>
+  </div>
+  {% if c.mode == 'team' %}
+  <div class="card">
+    <h3>队伍一览（{{ teams|length }}）</h3>
+    <table class="data">
+      <tr><th>队伍</th><th>队长</th><th>人数</th></tr>
+      {% for t in teams %}
+      <tr><td>{{ t.name }}</td><td>{{ t.leader_name }}</td><td>{{ t.member_count }} / {{ c.team_size_max }}</td></tr>
+      {% else %}<tr><td colspan="3" class="empty">暂无队伍</td></tr>{% endfor %}
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
