@@ -1,11 +1,10 @@
 @echo off
-chcp 65001 >nul
-title AI Server - Qwen2.5-0.5B (llama.cpp)
-cd /d %~dp0
+cd /d "%~dp0"
+title AI Server - Qwen2.5-1.5B
 echo ============================================
-echo  è‡ªå­¦ä¹ å¹³å°æœ¬åœ° AI æœåŠ¡ (OpenAI å…¼å®¹æ¥å£)
-echo  åœ°å€: http://127.0.0.1:11434/v1/chat/completions
-echo  å…³é—­æ­¤çª—å£å³åœæ­¢ AI æœåŠ¡
+echo   ×ÔÑ§Ï°Æ½Ì¨±¾µØ AI ·şÎñ ^| Qwen2.5-1.5B
+echo   ½Ó¿Ú: http://127.0.0.1:11434/v1/chat/completions
+echo   ¹Ø±Õ´Ë´°¿Ú¼´Í£Ö¹·şÎñ
 echo ============================================
 llama-server.exe -m qwen2.5-1.5b-instruct-q8_0.gguf --host 127.0.0.1 --port 11434 --ctx-size 8192 --threads 8
 pause
